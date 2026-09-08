@@ -1,0 +1,13 @@
+{
+  "name": "anonymized-cs-dashboard",
+  "private": true,
+  "description": "Public, fully anonymized demo of the internal customer success dashboard.",
+  "scripts": {
+    "build": "node build/build-demo.js --src ../For-Dashboard",
+    "test": "node build/smoke-test.js"
+  },
+  "devDependencies": {
+    "chart.js": "4.4.1",
+    "playwright": "^1.49.0"
+  }
+}
