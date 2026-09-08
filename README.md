@@ -97,9 +97,3 @@ EGC product but was never provisioned, two seats have a mature seat and have
 never published, one labelled contact has no email address, three accounts
 match no Slack channel, one account changed hands mid-window, and one customer
 churned inside the trailing-90-day window.
-
-## Note
-
-`anonymized dashboard.html` is the previous (June) build, kept only as history.
-Nothing deploys it — Netlify serves `index.html`. Its `<title>` still carries
-the real company name.
