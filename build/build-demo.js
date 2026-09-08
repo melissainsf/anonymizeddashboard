@@ -33,62 +33,37 @@ const OUT = path.resolve(__dirname, '..', 'index.html');
 const read = p => fs.readFileSync(path.join(SRC, p), 'utf8');
 
 // ── 1. Rename table ────────────────────────────────────────────────────────
-// Real -> fictional. Order matters: longer, more specific keys first so a
-// substring never eats a longer name.
-const PEOPLE = [
-  ['Maxwell',  'Sofia Reyes'],
-  ['Melissa',  'Maya Chen'],
-  ['melissa',  'maya'],
-  ['Marghi',   'Jordan Ellis'],
-  ['Karishma', 'Robin Tate'],
-  ['Emmett',   'Marcus Webb'],
-  ['Prentice', 'Casey Vaughn'],
-  ['Lakeisha', 'Ingrid Sol'],
-  ['Yichen',   'Rowan Vale'],
-  ['Millie',   'Tessa Vane'],
-  ['Daniel',   'Devin Walsh'],
-  ['Jacob',    'Liam Brennan'],
-  ['David',    'Priya Nair'],
-  ['Emily',    'Naomi Park'],
-  ['Eric',     'Sam Okafor'],
-];
-// Account renames. Where the internal comments turn on a name-matching quirk
-// (a dropped word, a space), the fictional pair keeps the same quirk so the
-// comment still explains something true about the code.
-const ACCOUNTS = [
-  ['Knopman Marks',        'Granite Logistics'],
-  ['Knopman',              'Granite Logistics'],
-  ['Magnific (Freepik)',   'Solstice Apparel'],
-  ['Magnific',             'Solstice Apparel'],
-  ['Madison West Partners','Tideway Bank Group'],   // CRM name ...
-  ['Madison West',         'Tideway Bank'],         // ... vs the product's
-  ['VitalBenefits',        'MarigoldBeauty'],       // CRM spelling ...
-  ['Vital Benefits',       'Marigold Beauty'],      // ... vs the product's
-  ['Trimble',              'Copperline Mfg'],
-  ['Othello',              'Meridian Freight'],
-  ['Buzzlead',             'Brightloom'],
-  ['Runpod',               'Lumen Robotics'],
-  ['Bland',                'Northwind Labs'],
-  ['Thrad',                'Cedar & Pine Co'],
-  ['Axya',                 'Harborview Realty'],
-  ['Goody',                'Verdant Foods'],
-];
-// Customer contacts named in comments.
-const CONTACTS = [
-  ['Brandon Ray', 'Ari Patel'],
-  ['Willow Thom', 'Dana Osei'],
-  ['Alex Perez',  'Gray Vance'],
-  ['Zhen Lu',     'Kai Nakamura'],
-  ['Jared',       'Blake'],
-];
+// The real -> fictional map lives in the PRIVATE repo, at <src>/demo-renames.json,
+// and is deliberately not stored here.
+//
+// It has to be treated exactly like the leak-check blocklist below: it names
+// real customers and staff, and it is strictly worse than a bare list, because
+// it maps every fictional name in this public demo back to the real one. A copy
+// in this repo would hand anyone a decoder ring for the whole dashboard — and,
+// since Netlify serves the repo, publish it at /build/build-demo.js too.
+//
+// PLATFORM_ALLOW is safe to keep here: it names the host, not a customer.
+const RENAMES_FILE = 'demo-renames.json';
+let RENAMES;
+try {
+  RENAMES = JSON.parse(read(RENAMES_FILE));
+} catch (e) {
+  console.error(`BUILD FAILED: could not read ${RENAMES_FILE} from ${SRC}`);
+  console.error('  The real -> fictional name map is kept in the private repo, not this one.');
+  console.error('  Point --src at a checkout of the internal dashboard that contains it.');
+  process.exit(1);
+}
+const PEOPLE   = RENAMES.people   || [];
+const ACCOUNTS = RENAMES.accounts || [];
+const CONTACTS = RENAMES.contacts || [];
+const BRAND    = RENAMES.brand    || [];
+if (!PEOPLE.length || !ACCOUNTS.length || !BRAND.length) {
+  console.error(`BUILD FAILED: ${RENAMES_FILE} is missing entries; refusing to build a half-renamed demo.`);
+  process.exit(1);
+}
 // Words that look like customer names but are the infrastructure the demo runs
 // on. "Netlify Blobs" is the hosting platform, not the account of that name.
 const PLATFORM_ALLOW = new Set(['Netlify']);
-const BRAND = [
-  ['virio.ai',  'northwind.example'],
-  ['Virio',     'Northwind'],
-  ['virio',     'northwind'],
-];
 
 // ── 2. Load source ─────────────────────────────────────────────────────────
 let html = read('index.html');
@@ -159,8 +134,8 @@ html = html.replace(initBlock[0], `window.addEventListener('DOMContentLoaded', a
 // ── 6. Token renames ───────────────────────────────────────────────────────
 const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 for (const [from, to] of [...ACCOUNTS, ...CONTACTS, ...PEOPLE, ...BRAND]) {
-  // \b does not fire next to a dot, so "virio.ai" is handled by ordering:
-  // the dotted form is listed before the bare one.
+  // \b does not fire next to a dot, so a dotted form (a domain) must be listed
+  // before the bare one in demo-renames.json, or the bare rule eats its stem.
   html = html.replace(new RegExp('\\b' + esc(from) + '\\b', 'g'), to);
 }
 

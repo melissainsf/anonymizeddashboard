@@ -31,12 +31,26 @@ Then commit `index.html` and push — Netlify deploys from `main`.
 | Step | Why |
 | --- | --- |
 | Swaps the AM roster constants | Keeps the real value/label split (a CRM option whose stored value differs from its label) so that display path still gets exercised, with invented names |
-| Renames people, accounts, contacts, brand | The rename table at the top of `build/build-demo.js` |
+| Renames people, accounts, contacts, brand | From `demo-renames.json` **in the private repo** — see below |
 | Drops the Supabase client, URL and key | The demo must not reach a real backend |
 | Injects `build/demo-layer.js` | Fixtures plus a mock database and `fetch` interceptor |
 | Inlines `bonus-calculator.js` | Keeps the demo a single self-contained page |
 | Bypasses the sign-in gate | There is no account to sign in with |
 | **Runs a leak check** | See below |
+
+## Why the rename table is not in this repo
+
+The real-to-fictional name map lives in the private repo, as
+`demo-renames.json`, and the build reads it from `--src`. It is not stored here
+and must not be copied here.
+
+A list of real customer names would be bad enough. A *mapping* is worse: it
+turns every fictional name in the published demo back into the real one. And
+because Netlify serves this repo's files, a copy would not merely sit in git —
+it would be downloadable at `/build/build-demo.js` on the live site.
+
+If the build cannot find the file it stops and says so, rather than emitting a
+half-renamed page.
 
 ## The leak check
 
