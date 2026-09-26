@@ -13,7 +13,7 @@ const fs = require('fs');
 const { chromium } = require('playwright');
 
 const FILE = 'file://' + path.resolve(__dirname, '..', 'index.html');
-const TABS = ['main','portfolio','cohorts','team','forecasting','requests','responses','nps','egc','bonus'];
+const TABS = ['main','portfolio','cohorts','team','forecasting','requests','responses','nps','egc','egcjourney','bonus'];
 
 // Requests that would mean the demo is not self-contained.
 const FORBIDDEN = /supabase\.co|hubapi\.com|slack\.com|\/api\/|netlify\/functions/;

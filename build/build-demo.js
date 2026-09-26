@@ -117,6 +117,19 @@ const sbBlock = html.match(/const SUPABASE_URL[\s\S]*?createClient\(SUPABASE_URL
 must(sbBlock, 'Supabase createClient block not found');
 html = html.replace(sbBlock[0], demoLayer.trim());
 
+// ── 4b. EGC Journey tab (demo only) ────────────────────────────────────────
+// A prototype tech-touch journey. It exists only in the demo: the internal
+// dashboard has no such tab. Inserted before the renames and the leak check so
+// both run over it.
+const journeyJs = fs.readFileSync(path.join(__dirname, 'egc-journey.js'), 'utf8');
+html = replaceOnce(html,
+  `<button class="tab-btn" onclick="switchTab(event,'egc')">EGC Usage</button>`,
+  `<button class="tab-btn" onclick="switchTab(event,'egc')">EGC Usage</button>\n  <button class="tab-btn" onclick="switchTab(event,'egcjourney');egcjEnsure()">EGC Journey</button>`,
+  'EGC Usage nav button');
+html = replaceOnce(html, '<div id="tab-bonus" class="tab-content">',
+  '<div id="tab-egcjourney" class="tab-content"></div>\n\n  <div id="tab-bonus" class="tab-content">', 'tab-bonus panel');
+html = replaceOnce(html, '</script>\n</body>', '</script>\n<script>\n' + journeyJs + '\n</script>\n</body>', 'closing body');
+
 // ── 5. Bypass the sign-in gate ─────────────────────────────────────────────
 const initBlock = html.match(/window\.addEventListener\('DOMContentLoaded', async \(\) => \{[\s\S]*?\n\}\);/);
 must(initBlock, 'DOMContentLoaded init block not found');
